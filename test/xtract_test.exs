@@ -3,8 +3,7 @@ defmodule XtractTest do
 
   def example_xml do
     """
-    <book>
-      <title>Genesis</title>
+    <book title="Genesis">
       <content>
         <chapter>
           <number>1</number>
@@ -20,7 +19,7 @@ defmodule XtractTest do
     """
   end
   
-  test "Xtract.Parser.parse/1 can xtract types" do
+  test "Xtract.Parser.parse/1 can xtract values" do
     xtracted_data = Xtract.Parser.parse(example_xml)
     book = List.first(xtracted_data)
     assert book[:title] == "Genesis"

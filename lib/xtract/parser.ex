@@ -10,8 +10,12 @@ defmodule Xtract.Parser do
   """
 
   def parse(xml) do
+    node_names = Regex.run(~r/[^<][^>]*/, xml)
+    top_node_name = List.first(node_names)
+    top_node_name_bitstring = String.to_char_list("/#{top_node_name}")
+
     {doc, _} = xml |> :erlang.bitstring_to_list |> :xmerl_scan.string
-    elements = :xmerl_xpath.string('/book', doc)
+    elements = :xmerl_xpath.string(top_node_name_bitstring, doc)
     
     nodes = Enum.map(elements, fn(elem) ->
       represent(xmlElement(elem, :content))
