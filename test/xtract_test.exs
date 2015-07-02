@@ -12,11 +12,19 @@ defmodule XtractTest do
     </book>
     """
   end
+
+  def ideal_elixir_rep do
+    [%{ :book => %{ :attrs => [num: "Gen"], :content => %{
+          :chapter => %{ :attrs => [num: "1"], :content => %{
+              :verse => %{ :attrs => [num: "1"], :content => "In the beginning God created the heaven and the earth." }
+            }
+          }
+        }}}]
+  end
   
   test "Xtract.Parser.parse/1 can xtract values" do
     xtracted_data = Xtract.Parser.parse(example_xml)
-    book = List.first(xtracted_data)
-    assert book[:num] == "Gen"
+    assert xtracted_data == ideal_elixir_rep()
   end
 end
 

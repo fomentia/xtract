@@ -55,4 +55,8 @@ defmodule Xtract.Parser do
   def represent_attr({:xmlAttribute, key, _, _, _, _, _, _, value, _}) do
     Map.put(%{}, key, value)
   end
+
+  def represent_attr(nil) do
+    "I'm sorry, but I can't parse that. Please take a look at your XML to make sure it's OK. If this is my fault, I'm sorry. :("
+  end
 end
