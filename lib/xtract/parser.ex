@@ -28,7 +28,7 @@ defmodule Xtract.Parser do
         name = xmlElement(node, :name)
         attribute = xmlElement(node, :attributes) |> List.first |> represent_attr
         content = xmlElement(node, :content)
-        Map.merge(data, Map.put(%{}, name, %{:attr => attribute, :content => represent(content)}))
+        Map.merge(data, Map.put(%{}, name, %{:attrs => attribute, :content => represent(content)}))
 
       Record.is_record(node, :xmlText) ->
         xmlText(node, :value) |> to_string
@@ -53,10 +53,10 @@ defmodule Xtract.Parser do
   end
 
   def represent_attr({:xmlAttribute, key, _, _, _, _, _, _, value, _}) do
-    Map.put(%{}, key, value)
+    Dict.put([], key, value)
   end
 
   def represent_attr(nil) do
-    "I'm sorry, but I can't parse that. Please take a look at your XML to make sure it's OK. If this is my fault, I'm sorry. :("
+    nil
   end
 end
