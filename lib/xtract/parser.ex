@@ -11,7 +11,7 @@ defmodule Xtract.Parser do
 
   def parse(xml) do
     {doc, _} = xml |> :erlang.bitstring_to_list |> :xmerl_scan.string
-    elements = :xmerl_xpath.string('/book', doc)
+    elements = :xmerl_xpath.string('.', doc)
     
     nodes = Enum.map(elements, fn(elem) ->
       represent(xmlElement(elem, :content))
