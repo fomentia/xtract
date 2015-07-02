@@ -10,12 +10,8 @@ defmodule Xtract.Parser do
   """
 
   def parse(xml) do
-    node_names = Regex.run(~r/[^<][^>]*/, xml)
-    top_node_name = List.first(node_names)
-    top_node_name_bitstring = String.to_char_list("/#{top_node_name}")
-
     {doc, _} = xml |> :erlang.bitstring_to_list |> :xmerl_scan.string
-    elements = :xmerl_xpath.string(top_node_name_bitstring, doc)
+    elements = :xmerl_xpath.string('/book', doc)
     
     nodes = Enum.map(elements, fn(elem) ->
       represent(xmlElement(elem, :content))
@@ -25,11 +21,14 @@ defmodule Xtract.Parser do
   end
 
   defp represent(node) do
+    data = Map.new()
+
     cond do
       Record.is_record(node, :xmlElement) ->
         name = xmlElement(node, :name)
+        attribute = xmlElement(node, :attributes) |> List.first |> represent_attr
         content = xmlElement(node, :content)
-        Map.put(%{}, name, represent(content))
+        Map.merge(data, Map.put(%{}, name, %{:attr => attribute, :content => represent(content)}))
 
       Record.is_record(node, :xmlText) ->
         xmlText(node, :value) |> to_string
@@ -51,5 +50,9 @@ defmodule Xtract.Parser do
 
       true -> "cannot represent #{inspect node}"
     end
+  end
+
+  def represent_attr({:xmlAttribute, key, _, _, _, _, _, _, value, _}) do
+    Map.put(%{}, key, value)
   end
 end
