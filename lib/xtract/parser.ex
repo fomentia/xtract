@@ -59,4 +59,16 @@ defmodule Xtract.Parser do
   def represent_attr(nil) do
     nil
   end
+
+  def find(xml, request) do
+    find_node = String.to_char_list("//#{request}")
+    {doc, _} = xml |> :erlang.bitstring_to_list |> :xmerl_scan.string
+    elements = :xmerl_xpath.string(find_node, doc)
+    
+    nodes = Enum.map(elements, fn(elem) ->
+      represent(xmlElement(elem, :content))
+    end)
+
+    List.first(nodes)
+  end
 end
