@@ -26,5 +26,10 @@ defmodule XtractTest do
     xtracted_data = Xtract.Parser.parse(example_xml)
     assert xtracted_data == ideal_elixir_rep()
   end
+
+  test "Xtract.Find/1 can find content" do
+    node = Xtract.Find([book: "Genesis", chapter: 1, verse: 1])
+    assert node == "In the beginning God created the heaven and the earth."
+  end
 end
 
