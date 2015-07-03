@@ -69,6 +69,6 @@ defmodule Xtract.Parser do
       represent(xmlElement(elem, :content))
     end)
 
-    List.first(nodes)
+    nodes
   end
 end
