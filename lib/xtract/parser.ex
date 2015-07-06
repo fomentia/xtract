@@ -1,18 +1,17 @@
 defmodule Xtract.Parser do
   require Record
   require Logger
+
   Record.defrecord :xmlAttribute, Record.extract(:xmlAttribute, from_lib: "xmerl/include/xmerl.hrl")
   Record.defrecord :xmlElement, Record.extract(:xmlElement, from_lib: "xmerl/include/xmerl.hrl")
   Record.defrecord :xmlText, Record.extract(:xmlText, from_lib: "xmerl/include/xmerl.hrl")
 
-  @doc """
-    Xtract.Parser should take an XML document and xtract it (haha) into an Elixir datastructure.
-  """
+  @data Keyword.new()
 
   def parse(xml) do
-    {doc, _} = xml |> :erlang.bitstring_to_list |> :xmerl_scan.string
+    {doc, _} = xml |> :binary.bin_to_list |> :xmerl_scan.string
     elements = :xmerl_xpath.string('.', doc)
-    
+
     nodes = Enum.map(elements, fn(elem) ->
       represent(xmlElement(elem, :content))
     end)
@@ -20,38 +19,42 @@ defmodule Xtract.Parser do
     nodes
   end
 
-  defp represent(node) do
-    data = Map.new()
+  # Node representation
 
-    cond do
-      Record.is_record(node, :xmlElement) ->
-        name = xmlElement(node, :name)
-        attribute = xmlElement(node, :attributes) |> List.first |> represent_attr
-        content = xmlElement(node, :content)
-        Map.merge(data, Map.put(%{}, name, %{:attrs => attribute, :content => represent(content)}))
+  defp represent(node) when Record.is_record(node, :xmlElement) do
+    name = xmlElement(node, :name)
+    attribute = xmlElement(node, :attributes) |> List.first |> represent_attr
+    content = xmlElement(node, :content)
+    
+    @data ++ Keyword.put(Keyword.new, name, [attrs: attribute, content: represent(content)])
+  end
 
-      Record.is_record(node, :xmlText) ->
-        xmlText(node, :value) |> to_string
+  defp represent(node) when Record.is_record(node, :xmlText) do
+    xmlText(node, :value) |> to_string
+  end
 
-      is_list(node) ->
-        case Enum.map(node, &(represent(&1))) do
-          [text_content] when is_binary(text_content) ->
-            text_content
+  defp represent(node) when is_list(node) do
+    case Enum.map(node, &(represent(&1))) do
+      [text_content] when is_binary(text_content) ->
+        text_content
 
-          elements ->
-            Enum.reduce(elements, %{}, fn(x, acc) ->
-              if is_map(x) do
-                Map.merge(acc, x)
-              else
-                acc
-              end
-            end)
-        end
-
-      true -> "cannot represent #{inspect node}"
+      elements ->
+        Enum.reduce(elements, [], fn(x, acc) ->
+          if is_list(x) do
+            Keyword.merge(acc, x)
+          else
+            acc
+          end
+        end)
     end
   end
 
+  defp represent(node) do
+    "cannot represent #{inspect node}"
+  end
+
+  # Attribute representation
+  
   def represent_attr({:xmlAttribute, key, _, _, _, _, _, _, value, _}) do
     Dict.put([], key, value)
   end
@@ -59,6 +62,8 @@ defmodule Xtract.Parser do
   def represent_attr(nil) do
     nil
   end
+
+  # Find function
 
   def find(xml, request) do
     find_node = String.to_char_list("//#{request}")

@@ -22,7 +22,7 @@ defmodule XtractTest do
         }}}]
   end
   
-  test "Xtract.Parser.parse/1 can xtract values" do
+  test "Xtract.Parser.parse/1 idealizes XML" do
     xtracted_data = Xtract.Parser.parse(example_xml)
     assert xtracted_data == ideal_elixir_rep()
   end
